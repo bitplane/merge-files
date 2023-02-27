@@ -1,7 +1,7 @@
 from typing import Callable
 
 from .concatenate import concatenate
-from .env_merger import env_merger
+from .env import env
 
 Merger = Callable[[bytes, bytes], bytes]
 
@@ -12,6 +12,6 @@ def get(source_type: str, dest_type: str) -> Merger:
     """
 
     if source_type == ".env" and dest_type == ".env":
-        return env_merger
+        return env
     else:
         return concatenate

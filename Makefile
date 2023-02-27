@@ -23,11 +23,12 @@ pre-commit: .git/hooks/pre-commit ## install pre-commit into the git repo
 update-pre-commit: build/update-pre-commit.sh ## autoupdate pre-commit
 	build/update-pre-commit.sh
 
-
+dist: build/dist.sh ## build the distributable files
+	build/dist.sh
 
 # Caching doesn't work if we depend on PHONY targets
 
-.venv/.installed: */pyproject.toml .venv/bin/activate build/install.sh
+.venv/.installed: */pyproject.toml .venv/bin/activate build/install.sh $(wildcard merge-files/**/*.py)
 	build/install.sh
 
 .venv/.installed-dev: */pyproject.toml .venv/bin/activate build/install-dev.sh

@@ -1,19 +1,26 @@
 #!/usr/bin/env python3
+"""Merges the source file into the destination file.
 
+Supports .env, text and binary files.
+"""
 import argparse
 import sys
 from typing import List
 
-from .merger import get
+from .mergers import get
 
 
 def parse_args(command_line: List[str]) -> argparse.Namespace:
+    """
+    Parse the command line arguments, or a list of strings.
+
+    Might call sys.exit() if the arguments are invalid.
+    """
     parser = argparse.ArgumentParser(
-        "Merges the source file into the destination file. "
-        "Supports .env, text and binary files."
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument("--source", help="The source file", required=True)
-    parser.add_argument("--dest", help="The destination file", required=True)
+    parser.add_argument("source", help="The source file")
+    parser.add_argument("dest", help="The destination file")
     parser.add_argument(
         "--update", help="Update values?", default=False, action="store_true"
     )
@@ -22,6 +29,9 @@ def parse_args(command_line: List[str]) -> argparse.Namespace:
 
 
 def main():
+    """
+    Main entry point for the merge-files command line tool.
+    """
     args = parse_args(sys.argv[1:])
 
     with open(args.source, "rb") as source_file:

@@ -1,7 +1,9 @@
-def env_merger(source: bytes, dest: bytes, update=False) -> bytes:
+def env(source: bytes, dest: bytes, update=False) -> bytes:
     """
     Merge two env files together
     """
+    # this is a bit hairy, need to refactor
+
     source_lines = source.decode().splitlines()
     dest_lines = dest.decode().splitlines()
 

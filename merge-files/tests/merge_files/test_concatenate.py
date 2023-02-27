@@ -1,4 +1,4 @@
-from merge_files.concatenate import concatenate
+from merge_files.mergers.concatenate import concatenate
 
 
 def test_concatenate_text_files():

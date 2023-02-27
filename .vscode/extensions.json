@@ -1,6 +1,7 @@
 {
 	"recommendations": [
 		"ms-python.python",
-		"davidanson.vscode-markdownlint"
+		"davidanson.vscode-markdownlint",
+		"ms-vscode.makefile-tools"
 	]
 }
