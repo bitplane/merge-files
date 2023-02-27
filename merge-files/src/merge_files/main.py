@@ -8,7 +8,10 @@ from .merger import get
 
 
 def parse_args(command_line: List[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        "Merges the source file into the destination file. "
+        "Supports .env, text and binary files."
+    )
     parser.add_argument("--source", help="The source file", required=True)
     parser.add_argument("--dest", help="The destination file", required=True)
     parser.add_argument(
