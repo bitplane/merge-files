@@ -2,6 +2,8 @@
 .PHONY: help all install test dev coverage clean \
 		pre-commit update-pre-commit
 
+# let us do globs on sources
+SHELL:=/bin/bash -O globstar
 
 all: dev coverage ## builds everything
 
@@ -28,10 +30,11 @@ dist: build/dist.sh ## build the distributable files
 
 # Caching doesn't work if we depend on PHONY targets
 
-.venv/.installed: */pyproject.toml .venv/bin/activate build/install.sh $(wildcard merge-files/**/*.py)
+.venv/.installed: */pyproject.toml .venv/bin/activate build/install.sh $(shell ls merge-files/**/*.py)
 	build/install.sh
 
-.venv/.installed-dev: */pyproject.toml .venv/bin/activate build/install-dev.sh
+.venv/.installed-dev: */pyproject.toml .venv/bin/activate build/install-dev.sh $(shell ls merge-files/**/*.py)
+	echo $(DEPS)
 	build/install-dev.sh
 
 .venv/bin/activate:
