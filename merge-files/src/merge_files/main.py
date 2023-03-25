@@ -5,9 +5,11 @@ Supports .env, text and binary files.
 """
 import argparse
 import sys
+from pathlib import Path
 from typing import List
 
-from .mergers import get
+from .mergable import get
+from .method import MergeMethod
 
 
 def parse_args(command_line: List[str]) -> argparse.Namespace:
@@ -19,32 +21,36 @@ def parse_args(command_line: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument("source", help="The source file")
-    parser.add_argument("dest", help="The destination file")
     parser.add_argument(
-        "--update", help="Update values?", default=False, action="store_true"
+        "files",
+        nargs="+",
+        help="List of files to merge. The last file will be the output.",
+    )
+    parser.add_argument(
+        "--method",
+        help="Merge method",
+        default=MergeMethod.preserve,
+        type=MergeMethod,
+        choices=list(MergeMethod),
     )
 
     return parser.parse_args(command_line)
 
 
-def main():
+def main(cmdline=sys.argv[1:]):
     """
     Main entry point for the merge-files command line tool.
     """
-    args = parse_args(sys.argv[1:])
+    args = parse_args(cmdline)
 
-    with open(args.source, "rb") as source_file:
-        source = source_file.read()
-
-    with open(args.dest, "rb") as dest_file:
-        dest = dest_file.read()
+    source = Path(args.source)
+    dest = Path(args.dest)
 
     merger = get(args.source, args.dest)
     output_data = merger(source, dest, args.update)
 
-    with open(args.dest, "wb") as dest_file:
-        dest_file.write(output_data)
+    with open(args.dest, "wb") as output_file:
+        output_file.write(output_data)
 
 
 if __name__ == "__main__":

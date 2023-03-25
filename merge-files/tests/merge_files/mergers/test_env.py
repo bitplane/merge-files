@@ -1,4 +1,4 @@
-from merge_files.mergers.env import env
+from merge_files.mergable.env import env
 
 
 def test_no_change():

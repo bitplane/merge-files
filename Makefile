@@ -2,14 +2,11 @@
 .PHONY: help all install test dev coverage clean \
 		pre-commit update-pre-commit
 
-# let us do globs on sources
-SHELL:=/bin/bash -O globstar
+all: dev coverage  ## builds everything
 
-all: dev coverage ## builds everything
+install: .venv/.installed  ## installs the venv and the project packages
 
-install: .venv/.installed ## installs the venv and the project packages
-
-dev: .venv/.installed-dev pre-commit ## prepare local repo and venv for dev
+dev: .venv/.installed-dev pre-commit  ## prepare local repo and venv for dev
 
 test: .venv/.installed-dev  ## run the project's tests
 	build/test.sh
@@ -17,21 +14,26 @@ test: .venv/.installed-dev  ## run the project's tests
 coverage: .venv/.installed-dev build/coverage.sh  ## build the html coverage report
 	build/coverage.sh
 
+docs: .docs/index.html ## build the documentation
+
 clean:  ## delete caches and the venv
 	build/clean.sh
 
-pre-commit: .git/hooks/pre-commit ## install pre-commit into the git repo
+pre-commit: .git/hooks/pre-commit  ## install pre-commit into the git repo
 
-update-pre-commit: build/update-pre-commit.sh ## autoupdate pre-commit
+update-pre-commit: build/update-pre-commit.sh  ## autoupdate pre-commit
 	build/update-pre-commit.sh
 
 dist: build/dist.sh ## build the distributable files
 	build/dist.sh
 
-publish: build/publish.sh
+publish: build/publish.sh ## publish to pypi
 	build/publish.sh
 
 # Caching doesn't work if we depend on PHONY targets
+
+.docs/index.html: build/docs.sh mkdocs.yml $(shell find -name '*.md')
+	build/docs.sh
 
 .venv/.installed: */pyproject.toml .venv/bin/activate build/install.sh $(shell find merge-files -name '*.py')
 	build/install.sh
