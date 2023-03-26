@@ -28,6 +28,9 @@ update-pre-commit: build/update-pre-commit.sh ## autoupdate pre-commit
 dist: build/dist.sh ## build the distributable files
 	build/dist.sh
 
+publish: build/publish.sh
+	build/publish.sh
+
 # Caching doesn't work if we depend on PHONY targets
 
 .venv/.installed: */pyproject.toml .venv/bin/activate build/install.sh $(shell find merge-files -name '*.py')
