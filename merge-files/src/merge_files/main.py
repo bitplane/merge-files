@@ -40,7 +40,7 @@ def main():
     with open(args.dest, "rb") as dest_file:
         dest = dest_file.read()
 
-    merger = get(source, dest)
+    merger = get(args.source, args.dest)
     output_data = merger(source, dest, args.update)
 
     with open(args.dest, "wb") as dest_file:

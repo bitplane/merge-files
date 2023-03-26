@@ -2,6 +2,7 @@
 	"recommendations": [
 		"ms-python.python",
 		"davidanson.vscode-markdownlint",
-		"ms-vscode.makefile-tools"
+		"ms-vscode.makefile-tools",
+		"ms-python.flake8"
 	]
 }

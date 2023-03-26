@@ -30,11 +30,10 @@ dist: build/dist.sh ## build the distributable files
 
 # Caching doesn't work if we depend on PHONY targets
 
-.venv/.installed: */pyproject.toml .venv/bin/activate build/install.sh $(shell ls merge-files/**/*.py)
+.venv/.installed: */pyproject.toml .venv/bin/activate build/install.sh $(shell find merge-files -name '*.py')
 	build/install.sh
 
-.venv/.installed-dev: */pyproject.toml .venv/bin/activate build/install-dev.sh $(shell ls merge-files/**/*.py)
-	echo $(DEPS)
+.venv/.installed-dev: */pyproject.toml .venv/bin/activate build/install-dev.sh
 	build/install-dev.sh
 
 .venv/bin/activate:
