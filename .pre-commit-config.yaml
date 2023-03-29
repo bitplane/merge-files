@@ -1,4 +1,4 @@
-exclude: '$merge-files/tests/e2e/test-files/.*'
+exclude: '^merge-files/tests/e2e/test-data/.*'
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
@@ -11,7 +11,7 @@ repos:
     -   id: mixed-line-ending
     -   id: trailing-whitespace
 -   repo: https://github.com/psf/black
-    rev: 23.1.0
+    rev: 23.3.0
     hooks:
     -   id: black
 -   repo: https://github.com/PyCQA/isort
@@ -29,7 +29,7 @@ repos:
     -   id: shellcheck
         args: [-eSC1091]
 -   repo: https://github.com/jackdewinter/pymarkdown
-    rev: v0.9.8
+    rev: v0.9.9
     hooks:
     -   id: pymarkdown
 -   repo: https://github.com/cmake-lint/cmake-lint
