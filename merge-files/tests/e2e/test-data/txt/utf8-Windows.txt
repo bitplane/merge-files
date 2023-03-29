@@ -1,0 +1,13 @@
+This is a UTF8 text file that contains:
+
+Hello world in:
+
+- Russian: Привет, мир
+- Hebrew: שלום עולם
+- Arabic: مرحبا بالعالم
+- Korean: 안녕하세요 세계
+- Japanese: こんにちは世界
+- Chinese: 你好世界
+
+And an emoji, for 💩 and giggles.
+

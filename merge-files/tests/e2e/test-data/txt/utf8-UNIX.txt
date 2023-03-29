@@ -11,4 +11,3 @@ Hello world in:
 
 And an emoji, for 💩 and giggles.
 
-And chardet will detect this as Windows and Turkish. Yeah right.

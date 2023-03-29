@@ -1,1 +1,1 @@
-merge-files/tests/e2e/test-data/* -merge -text
+merge-files/tests/e2e/test-data/** -merge -text
