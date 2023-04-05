@@ -1,21 +1,19 @@
 from pathlib import Path
 
-from .file import File
+from .file import MergeableFile
 from .method import Method
 
 NULL = 0
 
 
-class BinaryFile(File):
+class BinaryFile(MergeableFile):
     """
     A bunch of bytes.
     """
 
     usable_methods = [
         Method.default,
-        Method.preserve,
         Method.overwrite,
-        Method.append,
         Method.prepend,
     ]
 

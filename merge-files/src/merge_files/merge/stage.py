@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 class Option(BaseModel):
     """
-    Represents an command line option
+    Represents a command line option
     """
     name: str
     value: Optional[str]
@@ -20,7 +20,7 @@ class Stage(BaseModel):
     file: Optional[str] = None
 
 
-def parse_args(argv: List[str] = sys.argv) -> List[Stage]:
+def parse_args(argv: List[str] = sys.argv[1:]) -> List[Stage]:
     """
     Parses the command line arguments into a list of stages
     """

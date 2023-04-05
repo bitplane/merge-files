@@ -57,3 +57,4 @@ def test_parse_args_file_starts_with_hyphen():
     
     assert len(args) == 1
     assert args[0].file == '--file1'
+

@@ -2,37 +2,36 @@ from pathlib import Path
 
 import chardet
 
-from .mergable import MergableFile, MergeMethod
+from merge_files.mergeable_types.file import MergeableFile
+from merge_files.mergeable_types.method import Method
 
 NULL = 0
 
 
-class TextFile(MergableFile):
+class TextFile(MergeableFile):
     """
     A text file.
     Merges by concatenating onto the end of a given file
     """
 
     usable_methods = [
-        MergeMethod.default,
-        MergeMethod.preserve,
-        MergeMethod.overwrite,
-        MergeMethod.combine,
-        MergeMethod.append,
-        MergeMethod.prepend,
+        Method.default,
+        Method.overwrite,
+        Method.combine,
+        Method.prepend,
     ]
 
-    def merge(self, other: bytes, method: MergeMethod) -> bytes:
+    def merge(self, other: bytes, method: Method) -> bytes:
         """
         Merge the contents into the other file and return it.
         """
-        if method == MergeMethod.preserve:
+        if method == Method.preserve:
             return other
-        elif method == MergeMethod.overwrite:
+        elif method == Method.overwrite:
             return self.contents
-        elif method in (MergeMethod.combine, MergeMethod.append, MergeMethod.default):
+        elif method in (Method.combine, Method.append, Method.default):
             return concatenate(self.contents, other.contents)
-        elif method == MergeMethod.prepend:
+        elif method == Method.prepend:
             return concatenate(other.contents, self.contents)
         else:
             raise ValueError("Invalid merge method")
