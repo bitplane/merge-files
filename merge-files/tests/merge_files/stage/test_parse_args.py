@@ -1,4 +1,4 @@
-from merge_files.stage import parse_args
+from merge_files.merge.stage import parse_args
 
 
 def test_parse_args():

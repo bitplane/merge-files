@@ -18,5 +18,5 @@ class MergeableFile(Mergeable):
     @classmethod
     def get_supported_types(cls) -> List[FileSupport]:
         return super().get_supported_types() + [
-            FileSupport(SupportLevel, re.Pattern(".*"), "Binary data")
+            FileSupport(SupportLevel, re.Pattern(".*"), [], "Binary data")
         ]

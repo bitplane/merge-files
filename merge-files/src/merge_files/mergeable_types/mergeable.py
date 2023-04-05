@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional, List
 from pydantic import BaseModel
 
-from merge_files.stage import Option
+from merge_files.merge.stage import Option
 
 
 class SupportLevel(Enum):
@@ -64,3 +64,9 @@ class Mergeable:
         """
         return []
 
+    @classmethod
+    def get_formats(self) -> List[Formats]:
+        """
+
+        """
+        return None
