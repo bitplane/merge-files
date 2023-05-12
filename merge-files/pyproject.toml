@@ -17,7 +17,8 @@ classifiers = [
 
 
 dependencies = [
-    "chardet"
+    "chardet",
+    "pydantic"
 ]
 
 [project.optional-dependencies]

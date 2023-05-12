@@ -1,29 +1,41 @@
 from pathlib import Path
 from typing import List, Type
 
-from merge_files import mergeable_types
-from merge_files.mergeable_types.mergeable import Mergeable
+from merge_files import formats
+from merge_files.formats.format import Format
+from merge_files.merge.option import Option
+from merge_files.merge.support import Support
 
 
 class Merger:
     """
     The merge manager.
     """
+
     def __init__(self):
-        self.mergeable_types = find_mergeable_types()
+        self.formats = find_supported_formats()
+        self.sources = {format: [] for format in self.formats}
+        self.dests = {format: [] for format in self.formats}
 
-        self.supported_types: Dict[Priority, Support] = self._load_supported_types()
-    
-    def _load_supported_types(self) -> Dict[Priority, Support]:
+        for format in self.formats:
+            format.register(self)
+
+    def register(self, source: Type[Format], dest: Type[Format], options: List[Option]):
+        """
+        Register a merge that we can do
+        """
+        support = Support(source=source, dest=dest, options=options)
+        self.sources[source].append(support)
+        self.dests[dest].append(support)
 
 
-def find_mergeable_types() -> List[Type[Mergeable]]:
+def find_supported_formats() -> List[Type[Format]]:
     """
-    Find all the mergeable types
+    Find all the file formats we support
     """
 
     # import everything so we can find the subclasses
-    search_dir = Path(mergeable_types.__file__).parent
+    search_dir = Path(formats.__file__).parent
 
     for file in search_dir.rglob("*.py"):
         if file.name == "__init__.py":
@@ -33,11 +45,17 @@ def find_mergeable_types() -> List[Type[Mergeable]]:
         relative_path = file.relative_to(search_dir)
         module_name = ".".join(relative_path.parts)[:-3]
 
-        __import__(f"merge_files.mergeable_types.{module_name}")
+        __import__(f"merge_files.formats.{module_name}")
+
+        #
+        # spec = importlib.util.spec_from_file_location(module_name, file)
+        # module = importlib.util.module_from_spec(spec)
+        # spec.loader.exec_module(module)
+        #
 
     # find all subclasses, including subclasses of subclasses
-    
-    return get_subclasses(Mergeable)
+
+    return get_subclasses(Format)
 
 
 def get_subclasses(t: type) -> List[type]:

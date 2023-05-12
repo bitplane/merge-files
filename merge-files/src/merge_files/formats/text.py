@@ -1,9 +1,8 @@
 from pathlib import Path
 
 import chardet
-
-from merge_files.mergeable_types.file import MergeableFile
-from merge_files.mergeable_types.method import Method
+from merge_files.formats.file import MergeableFile
+from merge_files.formats.method import Method
 
 NULL = 0
 
