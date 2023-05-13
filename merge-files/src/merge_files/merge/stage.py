@@ -1,62 +1,65 @@
 import sys
-from typing import List, Optional
+from typing import List
 
-from merge_files.merge.option import Option
-from pydantic import BaseModel
+from merge_files.merge.options import Arguments, MainOptions, UnparsedStage
 
 
-class Stage(BaseModel):
+def parse_args(argv: List[str] = sys.argv[1:]) -> Arguments:
     """
-    Represents a merge destination and its options
+    Parses the command line arguments into main options and a list of stages.
     """
 
-    options: List[Option] = []
-    file: Optional[str] = None
+    # let's not mutate the system variables
+    argv = list(argv)
+
+    main = MainOptions(consume_opts(argv, main=True))
+
+    stages = []
+    while argv:
+        stages.append(UnparsedStage(consume_opts(argv)))
+
+    args = Arguments(main=main, stages=stages)
+
+    return args
 
 
-def parse_args(argv: List[str] = sys.argv[1:]) -> List[Stage]:
+def consume_opts(argv: List[str], main=False) -> dict[str, str]:
     """
-    Parses the command line arguments into a list of stages
+    Generates arguments
     """
-    stages: List[Stage] = []
+    opts = {}
 
-    i = 0
-    total_args = len(argv)
-    stage = Stage()
-
-    while i < total_args:
-        arg = argv[i]
+    while argv:
+        arg = argv[0]
 
         if arg == "--":
-            # finished options for this stage
-
-            stage.file = argv[i + 1]
-
-            i += 1
-            stages.append(stage)
-            stage = Stage()
+            argv.pop()
+            break
 
         elif arg.startswith("--"):
             # process an option
-
             option = arg[2:]
-            value = None
+
+            if main and option not in MainOptions.__fields__:
+                # end of main options
+                break
+
+            value = True
 
             if "=" in option:
                 option, value = option.split("=", maxsplit=1)
 
-            stage.options.append(Option(name=option, value=value))
+            option = option.replace("-", "_")
 
+            opts[option] = value
+            argv.pop()
+
+            if option == "target":
+                # might as well support --target=foo as positional
+                break
         else:
-            # process file name
-            stage.file = arg
-            stages.append(stage)
-            stage = Stage()
+            # positional argument
+            opts["target"] = arg
+            argv.pop()
 
-        i += 1
-
-    # append the final stage
-    if stage.file or stage.options:
-        stages.append(stage)
-
-    return stages
+    return opts

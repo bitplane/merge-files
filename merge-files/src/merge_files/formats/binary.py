@@ -1,109 +1,63 @@
-import re
-from enum import Enum
-from pathlib import Path
-from typing import List, Optional, Union
+from typing import Literal
 
-from pydantic import BaseModel
-
-from .file import MergeableFile
-from .mergeable import FileSupport, SupportLevel
-from .method import Method
-
-NULL = 0
+from merge_files.formats.file import File, FormatOptions
+from merge_files.merge.merge_method import SupportLevel, merge_method
 
 
-class PositionalConstant(Enum):
+class BinaryFileOptions(FormatOptions):
     """
-    Where to put the list data in the file
+    Options for binary files
     """
 
-    START = "start"
-    END = "end"
-
-
-ListPosition = Union[PositionalConstant, int]
-
-
-class NumericCombine(Enum):
+    at: int | Literal["start"] | Literal["start"] = Literal["end"]
     """
-    How to combine binary data
+    Where to insert the data
     """
 
-    INSERT = "insert"
-    OVERWRITE = "overwrite"
-    XOR = "xor"
-
-
-class Options(BaseModel):
+    overwrite: bool = True
     """
-    Options for merging binary files
+    Overwrite existing data? If False, then the data will be inserted
     """
 
-    at: ListPosition = PositionalConstant.END
+    # bits: int = 8
+    # truncate: bool = False
+
+
+class BinaryFile(File):
     """
-    Where to put the data. "start", "end" or an offset in bytes
-    """
-
-    overwrite: Optional[bool] = None
-    """
-    Overwrite the destination data?
-    """
-
-    method: Optional[Method] = None
-
-
-# options = [
-#    MergeOption(name="at", value="end", description="Put our data at the end of the file"),
-#
-# ]
-
-
-class BinaryFile(MergeableFile):
-    """
-    A bunch of bytes.
+    Base class for binary files.
     """
 
-    usable_methods = [
-        Method.default,
-        Method.overwrite,
-        Method.prepend,
-    ]
+    options: BinaryFileOptions
 
-    def merge(self, other: bytes, method: Method) -> bytes:
+    @merge_method(SupportLevel.MANGLING)
+    def merge_binary(self, other: "BinaryFile"):
         """
-        Merge the contents into the other file and return it.
+        Merge a binary file into a binary file.
+
+        Naive implementation that just uses bytes, so may not work
+        for large files.
         """
-        if method == Method.preserve:
-            return other
-        elif method == Method.overwrite:
-            return self.contents
-        elif method == Method.append or method == Method.default:
-            return other + self.contents
-        elif method == Method.prepend:
-            return self.contents + other
+
+        if self.options.at == "start":
+            pos = 0
+        elif self.options.at == "end":
+            pos = len(self.contents)
         else:
-            raise ValueError("Invalid merge method")
+            pos = self.options.at
 
-    @classmethod
-    def can_load(cls, source: Path) -> bool:
-        """
-        We can load any file, 'cause we're just a bunch of bytes
-        """
-        return source.is_file()
+        if pos > len(self.contents):
+            padding = b"\0" * (pos - len(self.contents))
+            self.contents = self.contents + padding + other.contents
+            return
 
-    @classmethod
-    def get_supported_types(cls) -> List[FileSupport]:
-        return super().get_supported_types() + [
-            FileSupport(
-                SupportLevel.MANGLING,
-                re.Pattern(".*"),
-                [
-                    Options(
-                        name="append",
-                        value="true",
-                        description="Put our data at the end of the file",
-                    ),
-                ],
-                "Binary data",
-            )
-        ]
+        if self.options.overwrite:
+            start = self.contents[:pos]
+            length = pos + len(other.contents)
+            end = self.contents[length:]
+            self.contents = start + other.contents + end
+            return
+
+        start = self.contents[:pos]
+        end = self.contents[pos:]
+        self.contents = start + other.contents + end
