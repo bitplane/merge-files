@@ -67,8 +67,9 @@ class Format(BaseModel):
     @classmethod
     def get_merge_methods(cls):
         """
-        Return a list of things that can be merged in to this format
+        Return a list of things that can be merged in to this format.
+
+        This is a list of functions that have been decorated with
+        `merge_method`.
         """
-        for key, value in cls.__dict__.items():
-            if callable(value) and hasattr(value, "priority"):
-                yield key
+        return [value for value in cls.__dict__.values() if hasattr(value, "support")]

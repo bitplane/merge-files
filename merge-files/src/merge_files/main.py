@@ -14,9 +14,9 @@ def main():
     """
     arguments = parse_args()
 
-    logging.setup(arguments.main.log_level)
+    logging.setup(arguments.options.log_level)
 
-    if arguments.main.help:
+    if arguments.options.help:
         help_topics = [stage.target for stage in arguments.stages]
         print(f"Help topics: {help_topics}")
 

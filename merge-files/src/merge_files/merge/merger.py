@@ -4,7 +4,7 @@ from typing import List, Type
 from merge_files import formats
 from merge_files.formats.format import Format
 from merge_files.merge.stage import Arguments
-from merge_files.utils.discovery import search_subclasses
+from merge_files.utils.code import search_subclasses
 
 
 class Merger:

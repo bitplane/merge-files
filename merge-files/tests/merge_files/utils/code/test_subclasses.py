@@ -1,4 +1,4 @@
-from merge_files.utils.discovery import subclasses
+from merge_files.utils.code import subclasses
 
 
 class Base:

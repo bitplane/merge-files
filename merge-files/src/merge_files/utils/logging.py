@@ -31,9 +31,9 @@ def setup(log_level: LogLevel = LogLevel.WARNING) -> None:
     Sets up the logging for the application
     """
     root_logger = logging.getLogger()
-    root_logger.setLevel(log_level)
+    root_logger.setLevel(log_level.value)
 
     # output to the console
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(log_level)
+    console_handler.setLevel(log_level.value)
     root_logger.addHandler(console_handler)
