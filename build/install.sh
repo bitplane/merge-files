@@ -7,6 +7,8 @@ source .venv/bin/activate
 python3 -m pip install ./merge-files
 
 # let make know that we are installed in user mode
+echo Installed normally
+
 touch .venv/.installed
 rm .venv/.installed-dev || true
 

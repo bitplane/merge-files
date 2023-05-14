@@ -2,5 +2,4 @@
 
 source .venv/bin/activate
 
-coverage run -m pytest ./*/tests
-coverage html --omit="./*/tests/*"
+pytest --cov=merge-files/src --cov-report=html .

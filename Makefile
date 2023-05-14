@@ -2,6 +2,10 @@
 .PHONY: help all install test dev coverage clean \
 		pre-commit update-pre-commit
 
+
+# SOURCE_FILES := $(shell find . -type f -name '*.py')
+
+
 all: dev coverage  ## builds everything
 
 install: .venv/.installed  ## installs the venv and the project packages
