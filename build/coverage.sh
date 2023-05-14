@@ -3,4 +3,4 @@
 source .venv/bin/activate
 
 coverage run -m pytest ./*/tests
-coverage html
+coverage html --omit="./*/tests/*"

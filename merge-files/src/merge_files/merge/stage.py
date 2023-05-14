@@ -12,13 +12,15 @@ def parse_args(argv: List[str] = sys.argv[1:]) -> Arguments:
     # let's not mutate the system variables
     argv = list(argv)
 
-    main = MainOptions(consume_opts(argv, main=True))
+    main = MainOptions.parse_obj(consume_opts(argv, main=True))
 
     stages = []
     while argv:
-        stages.append(UnparsedStage(consume_opts(argv)))
+        stage = {"options": consume_opts(argv)}
+        stage["target"] = stage["options"].pop("target", "")
+        stages.append(UnparsedStage.parse_obj(stage))
 
-    args = Arguments(main=main, stages=stages)
+    args = Arguments(options=main, stages=stages)
 
     return args
 
@@ -30,36 +32,51 @@ def consume_opts(argv: List[str], main=False) -> dict[str, str]:
     opts = {}
 
     while argv:
+        end_of_options = False
         arg = argv[0]
 
         if arg == "--":
-            argv.pop()
-            break
+            if main:
+                # no main options, first one was '--'
+                break
 
-        elif arg.startswith("--"):
+            argv.pop(0)
+
+            if not argv:
+                raise ValueError("Unexpected end of arguments")
+
+            arg = argv[0]
+            end_of_options = True
+
+        if arg.startswith("--") and not end_of_options:
             # process an option
             option = arg[2:]
+
+            if "=" in option:
+                option, value = option.split("=", maxsplit=1)
+            else:
+                value = True
+
+            option = option.replace("-", "_")
 
             if main and option not in MainOptions.__fields__:
                 # end of main options
                 break
 
-            value = True
-
-            if "=" in option:
-                option, value = option.split("=", maxsplit=1)
-
-            option = option.replace("-", "_")
-
             opts[option] = value
-            argv.pop()
+            argv.pop(0)
 
             if option == "target":
-                # might as well support --target=foo as positional
+                # might as well support --target=foo as named arg too
                 break
         else:
-            # positional argument
-            opts["target"] = arg
-            argv.pop()
+            # positional argument is the file name
+            if main:
+                # don't consume it when parsing main options
+                break
+            else:
+                opts["target"] = arg
+                argv.pop(0)
+                break
 
     return opts

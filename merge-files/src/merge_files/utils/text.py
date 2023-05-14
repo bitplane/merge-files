@@ -29,7 +29,7 @@ class LineEndings(Enum):
     """
 
 
-def detect_line_endings(data: bytes) -> bytes:
+def detect_line_endings(data: bytes, max_size=1_024_000) -> bytes:
     """
     Detect the line endings used in some text data.
 
@@ -38,7 +38,7 @@ def detect_line_endings(data: bytes) -> bytes:
     """
     pos = chunk_size = 1_024
 
-    max_size = min(len(data), 1_024_000)
+    max_size = min(len(data), max_size)
 
     while pos < max_size:
         start = pos - chunk_size

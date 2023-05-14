@@ -3,17 +3,26 @@
 Merges multiple files together
 """
 
+from merge_files.merge.merger import Merger
 from merge_files.merge.stage import parse_args
+from merge_files.utils import logging
 
 
 def main():
     """
     Entrypoint
     """
-    stages = parse_args()
+    arguments = parse_args()
 
-    for stage in stages:
-        print(stage)
+    logging.setup(arguments.main.log_level)
+
+    if arguments.main.help:
+        help_topics = [stage.target for stage in arguments.stages]
+        print(f"Help topics: {help_topics}")
+
+    merger = Merger(arguments)
+    merger.merge()
+
 
 if __name__ == "__main__":
     main()

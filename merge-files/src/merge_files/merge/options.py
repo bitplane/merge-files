@@ -1,5 +1,6 @@
 from typing import Any, Dict, List
 
+from merge_files.utils import logging
 from pydantic import BaseModel
 
 
@@ -30,16 +31,14 @@ class MainOptions(BaseModel):
     Global options for the pipeline.
     """
 
-    help: str | bool = False
+    help: bool = False
     """
     Display the help text.
     """
 
-    debug: str | bool = False
+    log_level: logging.LogLevel = logging.LogLevel.WARNING
     """
-    Display debug information.
-
-    If a log level is given, we can
+    Show debug messages.
     """
 
 
@@ -48,7 +47,7 @@ class Arguments(BaseModel):
     Command line arguments
     """
 
-    main: MainOptions
+    options: MainOptions
     """Global options"""
 
     stages: List[UnparsedStage]
