@@ -1,32 +1,25 @@
 import importlib
 from pathlib import Path
-from typing import List, Type
+from typing import Set, Type
 
 
-def subclasses(cls: Type) -> List[Type]:
+def subclasses(cls: Type) -> Set[Type]:
     """
     Get all subclasses of a type
     """
     res = []
-    for cls in cls.__subclasses__():
-        res.append(cls)
-        res.extend(subclasses(cls))
+    queue = [cls]
 
-    return res
+    while queue:
+        cls = queue.pop(0)
+        subclasses = cls.__subclasses__()
+        res.extend(subclasses)
+        queue.extend(subclasses)
 
-    # ChatGPT's suggestion, without recursion.
-    # need a test before trusting the lying sack of shit
-    # res = []
-    # queue = [cls]
-    # while queue:
-    #     cls = queue.pop(0)
-    #     subclasses = cls.__subclasses__()
-    #     res.extend(subclasses)
-    #     queue.extend(subclasses)
-    # return res
+    return set(res)
 
 
-def search_subclasses(search_dir: Path, cls: Type) -> List[Type]:
+def search_subclasses(search_dir: Path, cls: Type) -> Set[Type]:
     """
     Look in search_dir, find all subclasses of cls
     """
