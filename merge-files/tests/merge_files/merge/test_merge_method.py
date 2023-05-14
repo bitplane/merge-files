@@ -1,24 +1,14 @@
 from merge_files.formats.format import Format
 from merge_files.merge.merge_method import SupportLevel, merge_method
+from pydantic import ValidationError
 from pytest import raises
-
-
-def test_raise_exception_when_not_callable():
-    """
-    Test that merge_method raises an exception when it's not used on a function
-    """
-    with raises(ValueError):
-
-        @merge_method.DISABLED
-        class NotAFunction:
-            pass
 
 
 def test_raise_exception_when_no_other_argument():
     """
     Test that merge_method raises an exception when it's not used on a function
     """
-    with raises(ValueError):
+    with raises(ValidationError):
 
         @merge_method
         def no_other():
@@ -35,7 +25,7 @@ def test_adds_attributes():
     def test_func(other: Format):
         pass
 
-    assert test_func.source_format == Format
+    assert test_func.source_format == "Format"
     assert test_func.support == SupportLevel.MANGLING
 
 

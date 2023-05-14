@@ -1,7 +1,7 @@
 from typing import Literal
 
 from merge_files.formats.file import File, FormatOptions
-from merge_files.merge.merge_method import SupportLevel, merge_method
+from merge_files.merge.merge_method import merge_method
 
 
 class BinaryFileOptions(FormatOptions):
@@ -30,13 +30,13 @@ class BinaryFile(File):
 
     options: BinaryFileOptions
 
-    @merge_method(SupportLevel.MANGLING)
+    @merge_method.MANGLING
     def merge_binary(self, other: "BinaryFile"):
         """
         Merge a binary file into a binary file.
 
-        Naive implementation that just uses bytes, so may not work
-        for large files.
+        Naive implementation that just uses bytes, so may not work for
+        large files.
         """
 
         if self.options.at == "start":

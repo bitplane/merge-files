@@ -1,8 +1,8 @@
 import inspect
 from enum import Enum
-from typing import Any, Callable
+from typing import Callable
 
-from merge_files.formats.format import Format
+from pydantic import BaseModel, ValidationError, validator
 
 
 class SupportLevel(Enum):
@@ -29,17 +29,42 @@ class SupportLevel(Enum):
     """Supports this data format and all of its features, and doesn't lose any data in the process."""
 
 
-class MergeMethod:
-    def __init__(self, func: Callable, source_format: Format, support: SupportLevel):
-        self.source_format = source_format
-        self.support = support
-        self._func = func
+class MergeMethod(BaseModel):
+    """
+    Tags a function as a way to convert / merge from one format to another.
+    """
+
+    func: Callable
+    """The function wrapped by the method"""
+
+    source_format: str = None
+    """The format that this method can merge from"""
+
+    support: SupportLevel = SupportLevel.GENERIC
+    """How well this method supports the source format"""
+
+    @validator("source_format", pre=True, always=True)
+    def validate_source_format(cls, source_format, values):
+        func = values["func"]
+        argspec = inspect.getfullargspec(func)
+        source_format = argspec.annotations.get("other", None)
+
+        if source_format is None:
+            raise ValidationError("Missing 'other' argument on wrapped function")
+
+        # coerce to a string because we might be loading the module it lives in
+        # and end up with infinite recursion if we try to load it again.
+        if not isinstance(source_format, str):
+            source_format = str(source_format.__name__)
+
+        return source_format
 
     def __lt__(self, other: "MergeMethod") -> bool:
+        """
+        Ensure that MergeMethods are sortable by support level, a proxy to priority.
+        This could be made more complex for specific.
+        """
         return self.support.value > other.support.value
-
-    def __getattr__(self, name) -> Any:
-        return self._func.__getattr__(self, name)
 
 
 def _merge_method_decorator(support: SupportLevel = SupportLevel.GENERIC):
@@ -51,22 +76,10 @@ def _merge_method_decorator(support: SupportLevel = SupportLevel.GENERIC):
     the most disgusting sins. Fuck you, Python.
     """
 
-    def decorator(func):
-        """
-        The actual decorator
-        """
-        if not callable(func):
-            raise ValueError("merge_method can only be used on functions")
+    def create(func):
+        return MergeMethod(support=support, func=func)
 
-        argspec = inspect.getfullargspec(func)
-        source_format = argspec.annotations.get("other")
-
-        if not source_format:
-            raise ValueError("merge_method must have an 'other' argument")
-
-        return MergeMethod(func=func, source_format=source_format, support=support)
-
-    return decorator
+    return create
 
 
 class MergeMethods:
@@ -78,7 +91,7 @@ class MergeMethods:
     def __init__(self):
         for level in SupportLevel:
             name: str = level.name
-            setattr(self, name, _merge_method_decorator(level))
+            setattr(self, name, _merge_method_decorator(support=level))
 
     def __call__(self, *args, **kwargs):
         return _merge_method_decorator()(*args, **kwargs)
