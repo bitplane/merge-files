@@ -3,8 +3,8 @@
 Merges multiple files together
 """
 
+from merge_files.merge.args import parse_args
 from merge_files.merge.merger import Merger
-from merge_files.merge.stage import parse_args
 from merge_files.utils import logging
 
 

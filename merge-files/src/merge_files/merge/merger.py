@@ -3,7 +3,7 @@ from typing import List, Type
 
 from merge_files import formats
 from merge_files.formats.format import Format
-from merge_files.merge.stage import Arguments
+from merge_files.merge.args import Arguments
 from merge_files.utils.code import search_subclasses
 
 
@@ -17,13 +17,18 @@ class Merger:
         self.stage_dicts = args.stages
         self.stages = []
         self.formats = self.find_supported_formats()
-        self.sources = {format: [] for format in self.formats}
-        self.dests = {format: [] for format in self.formats}
+        self.formats_by_name = {str(format): format for format in self.formats}
 
     def merge(self):
         """
         Where the magic happens
         """
+
+        # ok we need a graph format
+        # 1. get candidates for stage (matching args)
+        # 2. sort by priority
+        # 3. ask
+
         # Find formats compatible with the stage options
         # for each stage, find the highest priority format that supports it
         # if no format supports it, find intermediate conversions.
