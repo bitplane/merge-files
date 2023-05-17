@@ -1,3 +1,4 @@
+import inspect
 import logging
 from enum import Enum
 
@@ -37,3 +38,13 @@ def setup(log_level: LogLevel = LogLevel.WARNING) -> None:
     console_handler = logging.StreamHandler()
     console_handler.setLevel(log_level.value)
     root_logger.addHandler(console_handler)
+
+
+def get_logger() -> logging.Logger:
+    """
+    Get the logger for the calling module
+    """
+    frame = inspect.currentframe().f_back
+    module_name = inspect.getmodule(frame).__name__
+
+    return logging.getLogger(module_name)

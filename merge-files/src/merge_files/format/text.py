@@ -3,8 +3,8 @@ from encodings.aliases import aliases
 from typing import List, Literal, Optional
 
 import chardet
-from merge_files.formats.file import File, FormatOptions
-from merge_files.merge.merge_method import merge_method
+from merge_files.format.file import File, FormatOptions
+from merge_files.merge.registry import SupportLevel, merge_method
 from merge_files.utils.text import LineEndings, detect_line_endings
 
 
@@ -61,14 +61,6 @@ class TextFile(File):
     _encoding: str = None
     _line_endings: str = None
 
-    @merge_method.FULL
-    def merge_text(self, other: "TextFile"):
-        """
-        Merge other's data into this one
-        """
-
-        raise NotImplementedError()
-
     def read(self):
         """
         Load the data into this object
@@ -101,3 +93,12 @@ class TextFile(File):
         # for line in self.lines:
         #     yield line
         #     yield self._line_endings
+
+
+@merge_method(support=SupportLevel.GENERIC)
+def merge_text_files(source: TextFile, other: TextFile, options: TextFileOptions):
+    """
+    Merge other's data into this one
+    """
+
+    raise NotImplementedError()

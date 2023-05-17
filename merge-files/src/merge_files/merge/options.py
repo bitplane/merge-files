@@ -10,7 +10,7 @@ class StageOptions(BaseModel):
     """
 
     target: str
-    """The target file. This is the default"""
+    """The source or destination data for this stage"""
 
 
 class UnparsedStage(StageOptions):

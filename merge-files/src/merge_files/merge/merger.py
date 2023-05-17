@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import List, Type
 
-from merge_files import formats
-from merge_files.formats.format import Format
+from merge_files import format
+from merge_files.format import Format
 from merge_files.merge.args import Arguments
 from merge_files.utils.code import search_subclasses
 
@@ -26,8 +26,6 @@ class Merger:
 
         # ok we need a graph format
         # 1. get candidates for stage (matching args)
-        # 2. sort by priority
-        # 3. ask
 
         # Find formats compatible with the stage options
         # for each stage, find the highest priority format that supports it
@@ -37,10 +35,10 @@ class Merger:
         raise NotImplementedError()
 
     @staticmethod
-    def find_supported_formats() -> List[Type[Format]]:
+    def find_supported_formats(
+        path: Path = Path(format.__file__),
+    ) -> List[Type[Format]]:
         """
         Find all the file formats we support
         """
-        path = Path(formats.__file__).parent
-
         return search_subclasses(path, Format)

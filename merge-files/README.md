@@ -1,67 +1,44 @@
 # merge\_files
 
-A generic, extensible file merger and converter.
+A generic, extensible file merge and conversion tool.
 
 ## Simple usage
 
-To merge a JSON file into a YAML file, you'd do the following:
+To merge changes in an `.env` file into an existing one in a `make` step,
+you might do this:
 
-    merge-files input.json output.yaml
+    merge-files setup/default.env .env
 
-This would detect the first file as JSON, the second as a YAML and insert the
-JSON file into the YAML.
+This uses sensible defaults and won't overwrite existing values, but
+will add new ones into the file.
 
-If you wanted to create this as a new file, you could do:
+To merge a json file into a yaml file, maybe this:
 
-    merge-files input.json input.yaml output.yaml
+    merge-files output.json docker-compose.yaml
 
-This would merge the JSON file into the YAML file and merge the result into the
-output.yml. This probably isn't what you want, so a warning will be emitted if
-the output file does not exist. If you wanted to create a new file, you could
-pass the `--create` flag to force overwriting the output, like so:
-
-    merge-files input.json input.yaml --create output.yaml
+By default, only the final step of the merge pipeline is written to. This is
+still pretty dangerous and the tool ia quite young, so buyer beware - make
+backups, add an extra step on the end, and expect it to change in future.
 
 ### The merge pipeline
 
-The merge process is a series of convert and join steps applied one after
-another. Each step represents a mergeable thing that is given a list of
-options that look like this:
+The pipeline is a series of load and merge steps applied one after another in
+a chain. Each step has some `options` followed by a `target`. The combination
+of these guides the selection of `merge_method`s that convert and brutalize
+your data along its way. The first options are global, and once a non-global
+option is spotted, the rest apply to the next target. The next option that
+doesn't start with a hyphen (or does but was preceded by `--`) is the next
+target.
 
-    merge-files --options [--options ...] file1 [--options ...] file2 [...]
-
-Each loader is asked whether they can handle the file given the options passed
-in. If they can, they are added to the candidate list for that step. This is
-repeated for each step until the final step is reached. At this point, none of
-the loaders are aware of the actual data inside the files, only the options
-passed in.
-
-Next, each candidate loader is asked if it can merge into the candidate in the
-next step. Any incompatible candidates are removed. This is repeated for each
-step. If there are any steps where a merge can't be performed, then the merge
-fails.
-
-Once the candidates are determined for each step, they are sorted by their
-highest compatibility score. Each loader is given the data itself to look at,
-and an actual compatibility score is determined.
+See `merge-files --help [topic]` to explore the available options and file
+formats.
 
 ## Under the hood
 
-In the example of a JSON file, as a `file` it is a sequence of binary digits.
-These can be imagined as either an array of 0s and 1s; some `data` or they can
-be grouped as a `list` of numbers made of some length of bits. As it's a text
-format, it is best grouped into `bytes` of 8 bits and this decoded into an array
-of `char`s; a `string`. This string can be broken into a `list` of `string`s,
-depending on the line endings used in the string. But a better way to think of
-it is as a tree of keys and values of different types; a `json_tree` object.
+`format`s are auto-discovered and collected by the `merger`. Each declares
+its `options` and one or more `merge_method`s that can receive a given
+`format`.
 
-`merge-files` supports different types of mergeable objects through a series
-of `mergeable_format` loaders. Each loader is registered by the
-
-itself, and uses external libraries to read and write the data.
-
-Currently supported files:
-
-* `.env` files
-* binary files (concatenates)
-* text files (most encodings, concatenates)
+The `merger` filters these by the given options for the stage, and orders
+them by compatibility. In the case of 100% compatibility, chains between
+formats are treated as a single link.
