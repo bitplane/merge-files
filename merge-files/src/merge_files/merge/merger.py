@@ -13,8 +13,7 @@ class Merger:
     """
 
     def __init__(self, args: Arguments):
-        self.options = args.options
-        self.stage_dicts = args.stages
+        self.args = args
         self.stages = []
         self.formats = self.find_supported_formats()
         self.formats_by_name = {str(format): format for format in self.formats}
@@ -23,14 +22,13 @@ class Merger:
         """
         Where the magic happens
         """
+        # create a parameter for each merge stage
 
-        # ok we need a graph format
-        # 1. get candidates for stage (matching args)
+        pipeline = [stage for stage in self.args.stages]
 
-        # Find formats compatible with the stage options
-        # for each stage, find the highest priority format that supports it
-        # if no format supports it, find intermediate conversions.
-        #  - Emit a warning
+        index = 0
+        while index < len(pipeline):
+            stage = pipeline[index]
 
         raise NotImplementedError()
 

@@ -36,6 +36,7 @@ def search_subclasses(search_dir: Path, cls: Type) -> Set[Type]:
         module_name = ".".join(relative_path.parts)[:-3]
 
         try:
+            logger.debug(f"Attempting to load {module_name}")
             spec = importlib.util.spec_from_file_location(module_name, file)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)

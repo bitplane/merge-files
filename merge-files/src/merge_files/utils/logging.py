@@ -27,24 +27,33 @@ class LogLevel(Enum):
     """Log everything. Might be noisy"""
 
 
-def setup(log_level: LogLevel = LogLevel.WARNING) -> None:
+_loggiing_initialized = False
+
+
+def setup(log_level: LogLevel = LogLevel.WARNING, logger=None) -> None:
     """
     Sets up the logging for the application
     """
-    root_logger = logging.getLogger()
-    root_logger.setLevel(log_level.value)
+    if not logger:
+        logger = logging.getLogger()
+
+    logger.setLevel(log_level.value)
 
     # output to the console
     console_handler = logging.StreamHandler()
     console_handler.setLevel(log_level.value)
-    root_logger.addHandler(console_handler)
+    logger.addHandler(console_handler)
 
 
 def get_logger() -> logging.Logger:
     """
     Get the logger for the calling module
     """
+
     frame = inspect.currentframe().f_back
     module_name = inspect.getmodule(frame).__name__
 
-    return logging.getLogger(module_name)
+    logger = logging.getLogger(module_name)
+    setup(logger=logger)
+
+    return logger
