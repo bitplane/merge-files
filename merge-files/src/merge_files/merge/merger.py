@@ -22,15 +22,23 @@ class Merger:
         """
         Where the magic happens
         """
-        # create a parameter for each merge stage
-
-        pipeline = [stage for stage in self.args.stages]
 
         index = 0
-        while index < len(pipeline):
-            stage = pipeline[index]
+        stages = self.args.stages
+        pipeline: List[Format] = []
 
-        raise NotImplementedError()
+        for i in range(len(stages)-1):
+            pipeline += find_merge(stages[index], stages[index+1])
+
+        # add stdout step        
+        # if not pipeline[-1].config.get('write', False):
+        #     pipeline.append()
+
+        for c in pipeline:
+            next = tranform.source_format(transform.args, next)
+        
+        # finished!
+
 
     @staticmethod
     def find_supported_formats(

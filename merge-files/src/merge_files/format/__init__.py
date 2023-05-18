@@ -23,9 +23,12 @@ class Format(BaseModel):
         as_: Optional[FormatType.__name__] = Field(default=None, alias="as")
         """Force using a specific format"""
 
-    def __init__(self, options: OptionsType):
+    def __init__(self, options: OptionsType | dict = OptionsType()):
         """
         Create a reference to the data we want to merge,
         but don't actually load it yet.
         """
-        self.options = type(self.options).parse_raw(**options)
+        if isinstance(options, dict):
+            self.options = type(self.options).parse_obj(options)
+        else:
+            self.options = options

@@ -3,7 +3,7 @@ from encodings.aliases import aliases
 from typing import List, Literal, Optional
 
 import chardet
-from merge_files.format.file import File, FormatOptions
+from merge_files.format.sys.file import File, FormatOptions
 from merge_files.merge.registry import SupportLevel, merge_method
 from merge_files.utils.text import LineEndings, detect_line_endings
 

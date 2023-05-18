@@ -1,8 +1,37 @@
 import io
 
-from merge_files.format.source.file.binary_stream import BinaryStream
 from merge_files.format.source.parameter import Parameter
 from merge_files.merge.registry import SupportLevel, merge_method
+
+
+
+class BinaryStream(
+    
+):
+    """
+    Represents a stream of binary data that's read like a file.
+    """
+
+    class Options(Format.Options):
+        """
+        Options for binary data stream.
+        """
+
+        start: Literal["start", "end"] = Literal["end"]
+        """
+        Where to insert the data in the output data.
+        """
+
+        overwrite: bool = True
+        """
+        Overwrite existing data? If False, then the data will be inserted,
+        which isn't usually what you want in binary data as it destroys offsets.
+        """
+
+        truncate: bool = False
+        """
+        Truncate the output data to the length of the input data?
+        """
 
 
 class BinaryFile(BinaryStream):
@@ -28,11 +57,15 @@ class BinaryFile(BinaryStream):
         self.handle.close()
 
 
+
+@merge_method(support=SupportLevel.GENERIC, stream=True)
+def merge_file_parameter(source: Parameter, dest: BinaryStream):
+    pass
+
+
+
 @merge_method(support=SupportLevel.GENERIC)
 def merge_file_parameter(source: Parameter, dest: BinaryFile):
-    """
-    Binary file can already be loaded from parameters, so do nothing.
-    """
     pass
 
 

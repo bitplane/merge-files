@@ -34,7 +34,7 @@ class BaseFile(Format):
         Base options for file-like sources
         """
 
-        handler_method: Literal["None"] = Literal["None"]
+        handler: Literal["None"] = Literal["None"]
         """
         Name of the handler to use.
         SAFETY: Use a Literal["Choice1", "Choice2"] or it can run arbitrary code.
@@ -54,23 +54,41 @@ class BaseFile(Format):
         """
         self.handle.close()
 
-    def seek(self, offset: int, whence: SeekMode = SeekMode.SEEK_SET):
-        """
-        Seek to a position in the file.
-        """
-        return self.handle.seek(offset)
-
     def tell(self) -> int:
         """
         Get the current position in the file.
         """
         return self.handle.tell()
 
+
+def RandomAccessFile(BaseFile):
+    """
+    A file where you can change the cursor position
+    """
+
+    def seek(self, offset: int, whence: SeekMode = SeekMode.SEEK_SET):
+        """
+        Seek to a position in the file.
+        """
+        return self.handle.seek(offset)
+
+
+def ReadableFile(BaseFile):
+    """
+    A file that can be accessed in read mode
+    """
+    
     def read(self, size=-1) -> bytes:
         """
         Read data from the file.
         """
         return self.handle.read(size)
+
+
+def WritableFile(BaseFile):
+    """
+    A file that can be written to
+    """
 
     def write(self, bytes) -> int:
         """
