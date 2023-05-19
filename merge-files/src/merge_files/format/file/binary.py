@@ -1,13 +1,11 @@
-import io
-
-from merge_files.format.source.parameter import Parameter
+from merge_files.format import Format
+from merge_files.format.file import BaseFile, ReadableFile, WritableFile
+from merge_files.format.parameter import Parameter
+from merge_files.format.parameter.eval import Eval
 from merge_files.merge.registry import SupportLevel, merge_method
 
 
-
-class BinaryStream(
-    
-):
+class BinaryStream(BaseFile, ReadableFile, WritableFile):
     """
     Represents a stream of binary data that's read like a file.
     """
@@ -17,9 +15,9 @@ class BinaryStream(
         Options for binary data stream.
         """
 
-        start: Literal["start", "end"] = Literal["end"]
+        selection: Eval = Eval("source")
         """
-        Where to insert the data in the output data.
+        Filters the data stream. Use range.
         """
 
         overwrite: bool = True
@@ -36,14 +34,12 @@ class BinaryStream(
 
 class BinaryFile(BinaryStream):
     """
-    Represents a seekable source/dest for of binary data
+    Represents a seekable source/dest for of binary data.
     """
-
-    handle: io.IOBase = None
 
     def __enter__(self):
         """
-        Enter the context manager
+        Enter the context manager.
         """
         source_type = self.__class__.__annotations__["handle"]
         self.handle = source_type(self.options.target, "rb")
@@ -52,30 +48,25 @@ class BinaryFile(BinaryStream):
 
     def __exit__(self, exc_type, exc_value, traceback):
         """
-        Exit the context manager
+        Exit the context manager.
         """
         self.handle.close()
 
 
-
 @merge_method(support=SupportLevel.GENERIC, stream=True)
-def merge_file_parameter(source: Parameter, dest: BinaryStream):
+def parameter_to_stream(source: Parameter, dest: BinaryStream):
     pass
 
 
-
 @merge_method(support=SupportLevel.GENERIC)
-def merge_file_parameter(source: Parameter, dest: BinaryFile):
+def parameter_to_file(source: Parameter, dest: BinaryFile):
     pass
 
 
 @merge_method(support=SupportLevel.MANGLING)
-def merge_binary(source: "BinaryFile", dest: "BinaryFile"):
+def merge_binary(source: "BinaryStream", dest: "BinaryStream"):
     """
-    Merge a binary file into a binary file.
-
-    Naive implementation that just uses bytes, so may not work for
-    large files.
+    Merge a binary stream into a binary stream.
     """
 
     if source.options.at == "start":

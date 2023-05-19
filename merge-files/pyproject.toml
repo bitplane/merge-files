@@ -7,10 +7,10 @@ authors = [
 ]
 
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: Public Domain", # OSI: nuck my suts
+    "License :: Public Domain", # OSI: nuck my suts; WTFPL
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -18,7 +18,8 @@ classifiers = [
 
 dependencies = [
     "chardet",
-    "pydantic"
+    "pydantic",
+    "simpleeval"
 ]
 
 [project.optional-dependencies]

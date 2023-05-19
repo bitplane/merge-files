@@ -91,7 +91,7 @@ class MergeRegistry(BaseModel):
 registry = MergeRegistry()
 
 
-def merge_method(support: SupportLevel = SupportLevel.GENERIC):
+def merge_method(support: SupportLevel = SupportLevel.GENERIC, streaming: bool = False):
     """
     Decorator for a function that can merge two data types together.
     """

@@ -77,7 +77,7 @@ def ReadableFile(BaseFile):
     """
     A file that can be accessed in read mode
     """
-    
+
     def read(self, size=-1) -> bytes:
         """
         Read data from the file.
