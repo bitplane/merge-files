@@ -1,14 +1,15 @@
 import sys
 from typing import Literal
 
-from merge_files.format.sys.file.text import TextStream
+from merge_files.format import OptionsType
+from merge_files.format.file.text import TextStream
 from pydantic import validator
 
 
 class StdIo(TextStream):
     """ """
 
-    class Options(TextStream.Options):
+    class Options(OptionsType):
         """
         Streams for stdin/stdout/stderr
         """
@@ -16,7 +17,7 @@ class StdIo(TextStream):
         handler: Literal["stdin", 0, "stdout", 1, "stderr", 2] | sys.TextIO = Literal[
             "stdin"
         ]
-        """Set the handler method, gets converted into a Callable from a string"""
+        """Literal or integer for stdin/stdout/stderr."""
 
         @validator("handler")
         def set_handler(cls, v):

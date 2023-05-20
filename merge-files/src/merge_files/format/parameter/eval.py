@@ -4,7 +4,7 @@ from pydantic import ConstrainedStr
 
 class Eval(ConstrainedStr):
     """
-    Execute a Python expression
+    Execute a Python expression.
     """
 
     strip_whitespace = True
@@ -17,3 +17,9 @@ class Eval(ConstrainedStr):
         except Exception as e:
             raise ValueError(f"Invalid expression: {v}") from e
         return v
+
+    def __call__(self):
+        """
+        Execute the statement.
+        """
+        return simpleeval.SimpleEval().eval(self)

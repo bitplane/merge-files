@@ -1,7 +1,6 @@
-from merge_files.format import Format
+from merge_files.format import OptionsType
 from merge_files.format.file import BaseFile, ReadableFile, WritableFile
 from merge_files.format.parameter import Parameter
-from merge_files.format.parameter.eval import Eval
 from merge_files.merge.registry import SupportLevel, merge_method
 
 
@@ -10,15 +9,17 @@ class BinaryStream(BaseFile, ReadableFile, WritableFile):
     Represents a stream of binary data that's read like a file.
     """
 
-    class Options(Format.Options):
+    class Options(OptionsType):
         """
         Options for binary data stream.
         """
 
-        selection: Eval = Eval("source")
+        from_: str = "0:-1"
         """
-        Filters the data stream. Use range.
+
         """
+
+        to: str = "0:-1"
 
         overwrite: bool = True
         """
@@ -69,25 +70,8 @@ def merge_binary(source: "BinaryStream", dest: "BinaryStream"):
     Merge a binary stream into a binary stream.
     """
 
-    if source.options.at == "start":
-        pos = 0
-    elif source.options.at == "end":
-        pos = -1
-    else:
-        pos = source.options.at
+    # options: BinaryStream.Options = source.options
 
-    if pos > len(source):
-        padding = b"\0" * (pos - len(source.contents))
-        source.contents = source.contents + padding + source.contents
-        return
+    # selection = options.selection()
 
-    if source.options.overwrite:
-        start = source.contents[:pos]
-        length = pos + len(source.contents)
-        end = source.contents[length:]
-        source.contents = start + source.contents + end
-        return
-
-    start = source.contents[:pos]
-    end = source.contents[pos:]
-    source.contents = start + source.contents + end
+    raise NotImplementedError("TODO: implement binary merging")
