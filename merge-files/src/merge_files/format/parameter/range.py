@@ -4,6 +4,27 @@ from typing import Iterable, Union
 from pydantic import ConstrainedStr
 
 
+def str_to_int(value: str, default: int) -> int:
+    """
+    Convert a string to an integer. If the string is empty, return the default
+    """
+    if not value:
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        if value == "inf" or value == "end":
+            return math.inf
+        elif "0x" in value:
+            return int(value, 16)
+        elif "0o" in value:
+            return int(value, 8)
+        elif "0b" in value:
+            return int(value, 2)
+        else:
+            raise ValueError(f"Invalid integer value {value}")
+
+
 class Range(ConstrainedStr):
     def __init__(self, value: str = ""):
         vals = [v.strip() for v in value.split(":")]
@@ -12,17 +33,22 @@ class Range(ConstrainedStr):
             raise ValueError("Too many values, only start and stop are allowed")
 
         if len(vals) == 1:
-            self.stop = int(vals[0]) if vals[0] != "" else math.inf
             self.start = 0
+            self.stop = str_to_int(vals[0], math.inf)
         else:
-            self.start = int(vals[0]) if vals[0] else 0
-            self.stop = int(vals[1]) if vals[1] != "" else math.inf
+            self.start = str_to_int(vals[0], 0)
+            self.stop = str_to_int(vals[1], math.inf)
 
         if self.start < 0:
-            raise ValueError("start must be positive")
+            raise ValueError(f"start must be positive (not {self.start})")
 
         if self.stop < 0:
-            raise ValueError("stop must be positive")
+            raise ValueError(f"stop must be positive (not {self.stop})")
+
+        if self.start >= self.stop:
+            raise ValueError(
+                f"start must be less than stop (not {self.start} >= {self.stop}))"
+            )
 
         super().__init__()
 
@@ -84,7 +110,8 @@ class Range(ConstrainedStr):
     @property
     def last(self) -> Union[int, float]:
         """
-        Gets the last value in this range. Will return infinity if the range has no end
+        Gets the last value in this range. Will return infinity if the range
+        has no end
         """
         return self.stop - 1
 
@@ -134,9 +161,6 @@ class Ranges(ConstrainedStr):
         elif isinstance(value, cls):
             return value
 
-    def __repr__(self):
-        return ",".join([str(r) for r in self.ranges])
-
     def append(self, value: Range):
         """
         Combine overlapping ranges
@@ -152,3 +176,41 @@ class Ranges(ConstrainedStr):
                 break
             except ValueError:
                 i += 1
+
+    def __eq__(self, other: "Ranges"):
+        return repr(self) == repr(other)
+
+    def __repr__(self):
+        return ",".join(repr(r) for r in self.ranges)
+
+    def __contains__(self, other: Union["Ranges", Range, int, float, Iterable]) -> bool:
+        """
+        See if a value is in this range
+        """
+        if other is None:
+            return False
+
+        if isinstance(other, (int, float)):
+            for r in self.ranges:
+                if other in r:
+                    return True
+            return False
+
+        if isinstance(other, Range):
+            for r in self.ranges:
+                if other in r:
+                    return True
+            return False
+
+        if isinstance(other, Ranges):
+            return other.ranges in self
+
+        if hasattr(other, "__iter__"):
+            for o in other:
+                if o is other:
+                    raise TypeError(f"Can't recurse on {type(other)}")
+                if o not in self:
+                    return False
+            return True
+
+        raise TypeError(f"Unsupported type {type(other)}")

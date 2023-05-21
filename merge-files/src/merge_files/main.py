@@ -19,6 +19,7 @@ def main():
     if arguments.options.help:
         help_topics = [stage.target for stage in arguments.stages]
         print(f"Help topics: {help_topics}")
+        return
 
     merger = Merger(arguments)
     merger.merge()

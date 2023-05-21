@@ -1,7 +1,7 @@
 import sys
 from typing import Literal
 
-from merge_files.format import OptionsType
+from merge_files.format import Format
 from merge_files.format.file.text import TextStream
 from pydantic import validator
 
@@ -9,7 +9,7 @@ from pydantic import validator
 class StdIo(TextStream):
     """ """
 
-    class Options(OptionsType):
+    class Options(Format.Options):
         """
         Streams for stdin/stdout/stderr
         """

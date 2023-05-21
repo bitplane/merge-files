@@ -144,3 +144,11 @@ def test_overlaps():
 def test_combine():
     assert Range("1:10").combine(Range("5:15")) == Range("1:15")
     assert Range(":10").combine(Range("9:")) == Range(":")
+
+
+def test_hex_range():
+    assert Range("0x1:0x10") == Range("1:16")
+
+
+def test_binary_range():
+    assert Range("0b0:0b100") == Range(":4")

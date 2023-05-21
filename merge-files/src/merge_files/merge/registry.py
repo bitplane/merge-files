@@ -38,20 +38,29 @@ class MergeParams(BaseModel):
     func: Callable
     """The function wrapped by the method"""
 
-    source_format: Type[Format]
+    source: Type[Format]
     """The format that this method can merge from"""
 
-    dest_format: Type[Format]
+    dest: Type[Format]
     """The format that this method merges into"""
 
     support: SupportLevel = SupportLevel.GENERIC
     """How well this method supports the source format"""
 
+    streaming: bool = False
+    """Does this method support streaming? If so, we prefer this method"""
+
     def __lt__(self, other: "MergeParams") -> bool:
         """
-        Ensure that MergeMethods are sortable by support level, a proxy to priority.
+        Compare two merge methods to see which one comes first.
         """
-        return self.support.value > other.support.value
+
+        equal_support = self.support.value == other.support.value
+        better_support = self.support.value > other.support.value
+
+        lower_ram_usage = self.streaming and not other.streaming
+
+        return better_support or (equal_support and lower_ram_usage)
 
 
 class MergeRegistry(BaseModel):
@@ -67,17 +76,17 @@ class MergeRegistry(BaseModel):
         Register a merge method
         """
 
-        if params.source_format not in self.by_source:
-            self.by_source[params.source_format] = []
+        if params.source not in self.by_source:
+            self.by_source[params.source] = []
 
-        self.by_source[params.source_format].insert(params)
-        self.by_source[params.source_format].sort()
+        self.by_source[params.source].append(params)
+        self.by_source[params.source].sort()
 
-        if params.dest_format not in self.by_dest:
-            self.by_source[params.dest_format] = []
+        if params.dest not in self.by_dest:
+            self.by_dest[params.dest] = []
 
-        self.by_dest[params.dest_format].insert(params)
-        self.by_dest[params.dest_format].sort()
+        self.by_dest[params.dest].append(params)
+        self.by_dest[params.dest].sort()
 
     def clear(self) -> None:
         """
@@ -99,9 +108,9 @@ def merge_method(support: SupportLevel = SupportLevel.GENERIC, streaming: bool =
     def decorate(func: Callable):
         func_args = inspect.getfullargspec(func)
 
-        params = {"support": support, "func": func}
+        params = {"support": support, "func": func, "streaming": streaming}
 
-        for param in ["func", "source_format", "dest_format", "streaming"]:
+        for param in ["source", "dest"]:
             params[param] = func_args.annotations.get(param, None)
 
         obj = MergeParams.parse_obj(params)

@@ -36,3 +36,6 @@ class Format(BaseModel):
             self.options = options
 
         super().__init__(options=self.options)
+
+    class Config:
+        arbitrary_types_allowed = True

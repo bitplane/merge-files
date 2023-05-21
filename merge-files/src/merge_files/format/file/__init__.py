@@ -1,5 +1,4 @@
 import io
-from abc import ABCMeta
 from enum import Enum
 from typing import Literal
 
@@ -21,14 +20,13 @@ class SeekMode(Enum):
     """Seek from the end of the file"""
 
 
-class BaseFile(Format):
+class File(Format):
     """
     Represents a stream of binary data, like a file, TTY or socket
     """
 
     handle: io.IOBase = None
 
-    @ABCMeta
     class Options(Format.Options):
         """
         Base options for file-like sources
@@ -61,7 +59,7 @@ class BaseFile(Format):
         return self.handle.tell()
 
 
-def RandomAccessFile(BaseFile):
+class RandomAccess:
     """
     A file where you can change the cursor position
     """
@@ -73,7 +71,7 @@ def RandomAccessFile(BaseFile):
         return self.handle.seek(offset)
 
 
-def ReadableFile(BaseFile):
+class Readable:
     """
     A file that can be accessed in read mode
     """
@@ -85,7 +83,7 @@ def ReadableFile(BaseFile):
         return self.handle.read(size)
 
 
-def WritableFile(BaseFile):
+class Writable:
     """
     A file that can be written to
     """

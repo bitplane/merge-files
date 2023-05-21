@@ -1,25 +1,25 @@
-from merge_files.format import OptionsType
-from merge_files.format.file import BaseFile, ReadableFile, WritableFile
+from merge_files.format.file import File, Readable, Writable
 from merge_files.format.parameter import Parameter
+from merge_files.format.parameter.range import Ranges
 from merge_files.merge.registry import SupportLevel, merge_method
 
 
-class BinaryStream(BaseFile, ReadableFile, WritableFile):
+class BinaryStream(File, Readable, Writable):
     """
     Represents a stream of binary data that's read like a file.
     """
 
-    class Options(OptionsType):
+    class Options(File.Options):
         """
         Options for binary data stream.
         """
 
-        from_: str = "0:-1"
+        range: Ranges = Ranges(":")
         """
-
+        Comma separated start:end ranges of data to include. Ranges exlude
+        the end value like in Python ranges. Negative values are not allowed
+        and step is not supported.
         """
-
-        to: str = "0:-1"
 
         overwrite: bool = True
         """
@@ -54,7 +54,7 @@ class BinaryFile(BinaryStream):
         self.handle.close()
 
 
-@merge_method(support=SupportLevel.GENERIC, stream=True)
+@merge_method(support=SupportLevel.GENERIC, streaming=True)
 def parameter_to_stream(source: Parameter, dest: BinaryStream):
     pass
 
@@ -64,14 +64,12 @@ def parameter_to_file(source: Parameter, dest: BinaryFile):
     pass
 
 
-@merge_method(support=SupportLevel.MANGLING)
-def merge_binary(source: "BinaryStream", dest: "BinaryStream"):
+@merge_method(support=SupportLevel.MANGLING, streaming=True)
+def merge_binary(source: BinaryStream, dest: BinaryStream):
     """
     Merge a binary stream into a binary stream.
     """
 
     # options: BinaryStream.Options = source.options
-
-    # selection = options.selection()
 
     raise NotImplementedError("TODO: implement binary merging")

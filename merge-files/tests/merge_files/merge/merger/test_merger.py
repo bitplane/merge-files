@@ -1,7 +1,13 @@
-from merge_files.merge.merger import Merger
+from merge_files.merge.merger import Arguments, Merger
 
 
 def test_find_mergeable_types():
     formats = Merger.find_supported_formats()
 
     assert len(formats) > 0
+
+
+def test_construct_merger():
+    args = Arguments()
+    merger = Merger(args)
+    merger  # breakpoint

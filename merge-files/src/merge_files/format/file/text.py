@@ -3,42 +3,10 @@ from encodings.aliases import aliases
 from typing import List, Literal, Optional
 
 import chardet
-from merge_files.format.file import File, FormatOptions
+from merge_files.format import Format
+from merge_files.format.file import File
 from merge_files.merge.registry import SupportLevel, merge_method
 from merge_files.utils.text import LineEndings, detect_line_endings
-
-
-class TextFileOptions(FormatOptions):
-    """
-    Options for loading and merging into text data
-    """
-
-    at: int | Literal["start", "end"] = Literal["end"]
-    """
-    Where to insert/append the data; "start", "end" or a line number
-    """
-
-    newlines: Optional[LineEndings | str] = None
-    """
-    The type of newlines to use. Defaults to whatever is in the
-    destination file, or the platform's default if the file is empty.
-
-    Feel free to abuse this to remove line endings
-    """
-
-    encoding: str = "auto"
-    """
-    The character encoding to use. This will default to UTF-8 for an
-    empty file, but otherwise will be detected using chardet.
-
-    For a greppable list of encodings, use `--help text_file.encodings`
-    """
-
-    upgrade: bool = False
-    """
-    If set, then the file will be upgraded to UTF-8 if the characters
-    in the source file can't be represented in the destinaton encoding.
-    """
 
 
 class TextFile(File):
@@ -46,8 +14,37 @@ class TextFile(File):
     Represents lines of text.
     """
 
-    options: TextFileOptions
-    """The options passed to the file"""
+    class Options(Format.Options):
+        """
+        Options for loading and merging into text data
+        """
+
+        at: int | Literal["start", "end"] = Literal["end"]
+        """
+        Where to insert/append the data; "start", "end" or a line number
+        """
+
+        newlines: Optional[LineEndings | str] = None
+        """
+        The type of newlines to use. Defaults to whatever is in the
+        destination file, or the platform's default if the file is empty.
+
+        Feel free to abuse this to remove line endings
+        """
+
+        encoding: str = "auto"
+        """
+        The character encoding to use. This will default to UTF-8 for an
+        empty file, but otherwise will be detected using chardet.
+
+        For a greppable list of encodings, use `--help text_file.encodings`
+        """
+
+        upgrade: bool = False
+        """
+        If set, then the file will be upgraded to UTF-8 if the characters
+        in the source file can't be represented in the destinaton encoding.
+        """
 
     encodings: List[str] = list(set(aliases.keys()))
     f"""All supported encodings:
@@ -96,7 +93,7 @@ class TextFile(File):
 
 
 @merge_method(support=SupportLevel.GENERIC)
-def merge_text_files(source: TextFile, other: TextFile, options: TextFileOptions):
+def merge_text_files(source: TextFile, dest: TextFile):
     """
     Merge other's data into this one
     """
