@@ -1,105 +1,154 @@
-from pydantic import constr
+import math
+from typing import Iterable, Union
 
-_decimal = r"""
-    \d+            # At least one digit
-    (              # subgroup
-        _          #   an underscore
-        \d+        #   at least one digit
-    )*             # zero or more times
-    [l|L]?         # Optional long
-"""
+from pydantic import ConstrainedStr
 
-_hexadecimal = r"""
-    0x             # Hexadecimal prefix
-    [0-9a-fA-F]+   # At least one hexadecimal digit
-    (              # subgroup
-        _          #   an underscore
-        [0-9a-fA-F]+ # at least one hexadecimal digit
-    )*             # zero or more times
-"""
 
-_octal = r"""
-    0o             # Octal prefix
-    [0-7]+         # At least one octal digit
-    (              # subgroup
-        _          #   an underscore
-        [0-7]+     #   at least one octal digit
-    )*             # zero or more times
-"""
+class Range(ConstrainedStr):
+    def __init__(self, value: str = ""):
+        vals = [v.strip() for v in value.split(":")]
 
-_binary = r"""
-    0b             # Binary prefix
-    [01]+          # At least one binary digit
-    (              # subgroup
-        _          #   an underscore
-        [01]+      #   at least one binary digit
-    )*             # zero or more times
-"""
+        if len(vals) > 2:
+            raise ValueError("Too many values, only start and stop are allowed")
 
-_integer = rf"""
-    (
-    \s*                    # Optional whitespace
-    [+-]?                  # Optional sign
-    {_decimal}             # Decimal integer
-    |                      # or
-    {_hexadecimal}         # Hexadecimal integer
-    |                      # or
-    {_octal}               # Octal integer
-    |                      # or
-    {_binary}              # Binary integer
-    )
-"""
+        if len(vals) == 1:
+            self.stop = int(vals[0]) if vals[0] != "" else math.inf
+            self.start = 0
+        else:
+            self.start = int(vals[0]) if vals[0] else 0
+            self.stop = int(vals[1]) if vals[1] != "" else math.inf
 
-_zero_integer = "(0[xob])?0+"
+        if self.start < 0:
+            raise ValueError("start must be positive")
 
-_nonzero_integer = rf"""((!{_zero_integer}){_integer})"""
+        if self.stop < 0:
+            raise ValueError("stop must be positive")
 
-integer_regex = rf"""(?x)  # Verbose regex
-    ^                      # start of string
-    {_integer}
-    $                      # End of string
-"""
+        super().__init__()
 
-nonzero_integer_regex = rf"""(?x)  # Verbose regex
-    ^                              # start of string
-    {_nonzero_integer}
-    $                              # End of string
-"""
+    def __repr__(self):
+        if not self.start and self.stop is math.inf:
+            return ":"
+        elif self.start == 0:
+            return f"{self.stop}"
+        elif self.stop is math.inf:
+            return f"{self.start}:"
+        else:
+            return f"{self.start}:{self.stop}"
 
-_range = rf"""
-    (!$|\s+$|\s*,|\s*,\s*$)          # Not empty
-    (
-        {_integer}?                  # Start of range
-        (
-            \:?                      # Colon
-            {_integer}?              # End of range
-            (
-                \:?                  # Colon
-                {_nonzero_integer}?  # Step
-            )?
-        )?
-        \s*                          # Optional whitespace
-    )
-"""
+    def __eq__(self, other):
+        return self.start == other.start and self.stop == other.stop
 
-range_regex = rf"""(?x)  # Verbose regex
-    ^                    # start of string
-    {_range}             # Range
-    $                    # End of string
-"""
+    def __lt__(self, other: "Range"):
+        """
+        Just for sorting. Makes no claims about the ranges being comparable
+        """
+        start = self.start or 0
+        other_start = other.start or 0
 
-ranges_regex = rf"""(?x) # Verbose regex
-    ^                    # start of string
-    {_range}             # Range
-    (                    # subgroup
-        \s*              #   Optional whitespace
-        ,                #   Comma
-        \s*              #   Optional whitespace
-        {_range}         #   Range
-    )*                   # zero or more times
-    $                    # End of string
-"""
+        return start < other_start
 
-Integer = constr(regex=integer_regex)
-# Range = constr(regex=range_regex)
-# Ranges = constr(regex=ranges_regex)
+    def __contains__(self, other: Union["Range", int, float, Iterable]) -> bool:
+        """
+        See if a value is in this range
+        """
+        if other is None:
+            return False
+
+        if isinstance(other, (int, float)):
+            return self.start <= other <= self.last
+
+        if isinstance(other, Range):
+            start_inside = other.start in self
+            last_inside = self.stop is None or other.last in self
+
+            return start_inside and last_inside
+
+        if hasattr(other, "__iter__"):
+            for o in other:
+                if o is other:
+                    raise TypeError(f"Can't recurse on {type(other)}")
+                if o not in self:
+                    return False
+            return True
+
+        raise TypeError(f"Unsupported type {type(other)}")
+
+    @property
+    def is_full(self) -> bool:
+        """
+        True if this range starts at zero and has no end
+        """
+        return self.start == 0 and self.stop is math.inf
+
+    @property
+    def last(self) -> Union[int, float]:
+        """
+        Gets the last value in this range. Will return infinity if the range has no end
+        """
+        return self.stop - 1
+
+    def overlaps(self, other: "Range") -> bool:
+        """
+        True if this range overlaps with the other range
+        """
+        if self in other or other in self:
+            return True
+
+        if self.start in other or other.start in self:
+            return True
+
+        return False
+
+    def combine(self, other: "Range") -> "Range":
+        """
+        Combine this range with another range
+        """
+        if not self.overlaps(other):
+            raise ValueError("Ranges do not overlap")
+
+        r = Range()
+        r.start = min(self.start, other.start)
+        r.stop = max(self.stop, other.stop)
+
+        return r
+
+
+class Ranges(ConstrainedStr):
+    ranges: list[Range]
+
+    def __init__(self, value: str = ""):
+        self.ranges = []
+        ranges = [Range(v.strip()) for v in value.split(",")]
+        ranges = sorted(ranges)
+
+        for r in ranges:
+            self.append(r)
+
+        super().__init__()
+
+    @classmethod
+    def validate(cls, value: Union[str, "Ranges"]):
+        if isinstance(value, str):
+            return cls(value)
+        elif isinstance(value, cls):
+            return value
+
+    def __repr__(self):
+        return ",".join([str(r) for r in self.ranges])
+
+    def append(self, value: Range):
+        """
+        Combine overlapping ranges
+        """
+        self.ranges.append(value)
+        self.ranges.sort()
+        i = 0
+        while i < len(self.ranges):
+            try:
+                self.ranges[i] = self.ranges[i].combine(self.ranges[i + 1])
+                del self.ranges[i + 1]
+            except IndexError:
+                break
+            except ValueError:
+                i += 1
