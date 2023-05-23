@@ -27,7 +27,12 @@ def parse_args(argv: List[str] = sys.argv[1:]) -> Arguments:
 
 def consume_opts(argv: List[str], main=False) -> dict[str, str]:
     """
-    Generates arguments
+    Takes options from a list of command line parmeters, mutating the
+    list by removing the consumed parameters and returning an options
+    dictionary.
+
+    If `main` is True then this is the first stage, we're parsing the
+    main options for the program not one of the merge steps.
     """
     opts = {}
 
