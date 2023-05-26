@@ -152,3 +152,13 @@ def test_hex_range():
 
 def test_binary_range():
     assert Range("0b0:0b100") == Range(":4")
+
+
+def test_plus_operator():
+    assert Range("1:10") + Range("5:15") == Range("1:15")
+    assert Range(":10") + Range("9:") == Range(":")
+
+
+def test_plus_operator_non_overlapping():
+    with pytest.raises(ValueError):
+        Range("1:10") + Range("11:15")

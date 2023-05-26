@@ -100,6 +100,12 @@ class Range(ConstrainedStr):
 
         raise TypeError(f"Unsupported type {type(other)}")
 
+    def __add__(self, other: "Range") -> "Range":
+        """
+        Combine this range with another range
+        """
+        return self.combine(other)
+
     @property
     def is_full(self) -> bool:
         """
