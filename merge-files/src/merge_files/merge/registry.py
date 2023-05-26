@@ -1,3 +1,7 @@
+"""
+Contains the registry of merge methods.
+"""
+
 import inspect
 from enum import Enum
 from typing import Callable, Dict, List, Type
@@ -87,6 +91,14 @@ class MergeRegistry(BaseModel):
 
         self.by_dest[params.dest].append(params)
         self.by_dest[params.dest].sort()
+
+    def get_merge(self, source: Format, dest: Format) -> List[MergeParams]:
+        """
+        Get a list of merge methods that can convert from the source to the dest
+        format.
+        """
+
+        return self.by_source.get(source, [])
 
     def clear(self) -> None:
         """

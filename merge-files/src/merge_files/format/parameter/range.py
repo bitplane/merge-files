@@ -26,8 +26,11 @@ def str_to_int(value: str, default: int) -> int:
 
 
 class Range(ConstrainedStr):
+    start: int = 0
+    stop: Union[int, float] = math.inf
+
     def __init__(self, value: str = ""):
-        vals = [v.strip() for v in value.split(":")]
+        vals = [v.strip() for v in str(value).split(":")]
 
         if len(vals) > 2:
             raise ValueError("Too many values, only start and stop are allowed")
@@ -62,7 +65,17 @@ class Range(ConstrainedStr):
         else:
             return f"{self.start}:{self.stop}"
 
-    def __eq__(self, other):
+    def __str__(self):
+        return repr(self)
+
+    def __eq__(self, other: Union["Range", int, str]):
+        if isinstance(other, Range):
+            pass
+        elif isinstance(other, int):
+            other = Range(f"{other}:{other+1}")
+        else:
+            other = Range(other)
+
         return self.start == other.start and self.stop == other.stop
 
     def __lt__(self, other: "Range"):
@@ -100,11 +113,30 @@ class Range(ConstrainedStr):
 
         raise TypeError(f"Unsupported type {type(other)}")
 
-    def __add__(self, other: "Range") -> "Range":
+    def __add__(self, other: Union["Range", "Ranges", str]) -> Union["Range", "Ranges"]:
         """
         Combine this range with another range
         """
+        if isinstance(other, Range):
+            return self.combine(other)
+
+        elif isinstance(other, str):
+            ranges = Ranges(other)
+            ranges.append(self)
+            if len(ranges.ranges) == 1:
+                return ranges.ranges[0]
+            return ranges
+
         return self.combine(other)
+
+    def __iter__(self):
+        """
+        Iterate over the values in this range
+        """
+        i = self.start
+        while i < self.stop:
+            yield i
+            i += 1
 
     @property
     def is_full(self) -> bool:
@@ -133,12 +165,27 @@ class Range(ConstrainedStr):
 
         return False
 
-    def combine(self, other: "Range") -> "Range":
+    def adjacent(self, other: "Range") -> bool:
+        """
+        True if this range is adjacent to the other range
+        """
+        if self.stop == other.start or other.stop == self.start:
+            return True
+
+        return False
+
+    def attached(self, other: "Range") -> bool:
+        """
+        True if this range is adjacent or overlaps the other range
+        """
+        return self.adjacent(other) or self.overlaps(other)
+
+    def combine(self, other: "Range") -> Union["Range", "Ranges"]:
         """
         Combine this range with another range
         """
-        if not self.overlaps(other):
-            raise ValueError("Ranges do not overlap")
+        if not self.attached(other):
+            return Ranges(self) + other
 
         r = Range()
         r.start = min(self.start, other.start)
@@ -146,13 +193,20 @@ class Range(ConstrainedStr):
 
         return r
 
+    @classmethod
+    def validate(cls, value: Union[str, "Range"]):
+        if isinstance(value, str):
+            return cls(value)
+        elif isinstance(value, cls):
+            return value
+
 
 class Ranges(ConstrainedStr):
     ranges: list[Range]
 
     def __init__(self, value: str = ""):
         self.ranges = []
-        ranges = [Range(v.strip()) for v in value.split(",")]
+        ranges = [Range(v) for v in str(value).split(",")]
         ranges = sorted(ranges)
 
         for r in ranges:
@@ -169,25 +223,46 @@ class Ranges(ConstrainedStr):
 
     def append(self, value: Range):
         """
-        Combine overlapping ranges
+        Add this range to the list of ranges
         """
         self.ranges.append(value)
         self.ranges.sort()
-        i = 0
+
+        i = 1
+
         while i < len(self.ranges):
-            try:
-                self.ranges[i] = self.ranges[i].combine(self.ranges[i + 1])
-                del self.ranges[i + 1]
-            except IndexError:
-                break
-            except ValueError:
-                i += 1
+            current = self.ranges[i]
+            last = self.ranges[i - 1]
+            if last.attached(current):
+                self.ranges[i - 1] = current.combine(last)
+                del self.ranges[i]
+                i -= 1
+            i += 1
 
     def __eq__(self, other: "Ranges"):
         return repr(self) == repr(other)
 
     def __repr__(self):
         return ",".join(repr(r) for r in self.ranges)
+
+    def __str__(self):
+        """
+        Strings are immutable, and this object isn't. That's a problem...
+        """
+        return self.__repr__()
+
+    def __add__(self, other: Union["Ranges", Range, str]) -> "Ranges":
+        """
+        Combine this range with another range
+        """
+        new = Ranges(self)
+        if isinstance(other, Range):
+            new.append(other)
+            return new
+        elif isinstance(other, str):
+            other = Ranges(other)
+
+        return new.combine(other)
 
     def __contains__(self, other: Union["Ranges", Range, int, float, Iterable]) -> bool:
         """
@@ -211,7 +286,11 @@ class Ranges(ConstrainedStr):
         if isinstance(other, Ranges):
             return other.ranges in self
 
+        if isinstance(other, str):
+            return Ranges(other) in self
+
         if hasattr(other, "__iter__"):
+            # generic support for iterables
             for o in other:
                 if o is other:
                     raise TypeError(f"Can't recurse on {type(other)}")
@@ -219,4 +298,39 @@ class Ranges(ConstrainedStr):
                     return False
             return True
 
-        raise TypeError(f"Unsupported type {type(other)}")
+        # Do whatever Range can do
+        for r in self.ranges:
+            if other in r:
+                return True
+        return False
+
+    def __iter__(self):
+        """
+        Iterate over the values in this range
+        """
+        for r in self.ranges:
+            for i in range(r.start, r.stop):
+                yield i
+
+    def combine(self, other: "Ranges") -> "Ranges":
+        """
+        Combine this range with another range
+        """
+        ret = Ranges(self)
+
+        for o in other.ranges:
+            ret.append(o)
+
+        return ret
+
+    def overlaps(self, other: Union["Ranges", str]) -> bool:
+        """
+        True if this range overlaps with the other range
+        """
+        other = Ranges(other)
+        for r in self.ranges:
+            for o in other.ranges:
+                if r.overlaps(o):
+                    return True
+
+        return False
