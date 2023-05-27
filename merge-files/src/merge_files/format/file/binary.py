@@ -1,6 +1,6 @@
 from merge_files.format.file import File, Readable, Writable
 from merge_files.format.parameter import Parameter
-from merge_files.format.parameter.range import Ranges
+from merge_files.format.parameter.__range import Ranges
 from merge_files.merge.registry import SupportLevel, merge_method
 
 

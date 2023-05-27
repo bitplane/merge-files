@@ -1,14 +1,14 @@
-from merge_files.format.parameter.range import Range
+from merge_files.format.parameter.range.range import Range
 
 
-def test_combine():
-    assert Range("1:10").combine(Range("5:15")) == Range("1:15")
-    assert Range(":10").combine(Range("9:")) == Range(":")
+def test_join():
+    assert Range("1:10").join(Range("5:15")) == Range("1:15")
+    assert Range(":10").join(Range("9:")) == Range(":")
 
 
-def test_combine_adjacent():
-    assert Range("1:10").combine(Range("10:15")) == Range("1:15")
-    assert Range("1:10").combine(Range("0:1")) == Range("0:10")
+def test_join_adjacent():
+    assert Range("1:10").join(Range("10:15")) == Range("1:15")
+    assert Range("1:10").join(Range("0:1")) == Range("0:10")
 
 
 def test_overlaps():

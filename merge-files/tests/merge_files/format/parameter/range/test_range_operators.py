@@ -1,5 +1,5 @@
 import pytest
-from merge_files.format.parameter.range import Range, Ranges
+from merge_files.format.parameter.range.range import Range
 
 
 def test_equality():
@@ -29,6 +29,15 @@ def test_sort_order():
     assert Range("5:") > Range("1:10")
 
 
+def test_order_int():
+    """
+    Whichever comes first
+    """
+    # we can't do > here because that's an operator on the number object
+    assert Range(100, 200) < 101
+    assert not Range(0, 20) < -100
+
+
 def test_contains_int():
     """
     Range should be like python ranges - end value is not included
@@ -54,12 +63,13 @@ def test_contains_range():
     assert Range("2:") not in Range("2:10")
 
 
-def test_doesnt_contain_none():
-    assert None not in Range(":")
+def test_nonetype_causes_error():
+    with pytest.raises(TypeError):
+        None in Range(":")
 
 
 def test_contains_text():
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         "hello" in Range(":")
 
 
@@ -72,11 +82,16 @@ def test_contains_unsupported_type():
 
 
 def test_equality_other_type():
-    class Crash:
+    class Unknown:
         pass
 
-    with pytest.raises(TypeError):
-        Range(":") == Crash()
+    assert Range(":") != Unknown()
+
+
+def test_equality_hash():
+    assert hash(Range(":")) == hash(Range("0:inf"))
+    assert hash(Range(":10")) == hash(Range("0:10"))
+    assert hash(Range("10:")) != hash(Range("0:inf"))
 
 
 def test_plus_operator():
@@ -85,7 +100,8 @@ def test_plus_operator():
 
 
 def test_plus_operator_non_overlapping():
-    assert Range("1:10") + Range("11:15") == Ranges("1:10,11:15")
+    with pytest.raises(ValueError):
+        Range("1:10") + Range("11:15")
 
 
 def test_add_adjacent_ranges():
@@ -95,13 +111,3 @@ def test_add_adjacent_ranges():
 def test_iterator():
     assert list(Range("1:10")) == [1, 2, 3, 4, 5, 6, 7, 8, 9]
     assert list(Range("5")) == [0, 1, 2, 3, 4]
-
-
-def test_add_ranges_to_range():
-    first = Range("1:10")
-    second = Ranges("11:15, 20:25")
-    combined = first + second
-
-    assert first in combined
-    assert second in combined
-    assert combined == Ranges("1:10,11:15,20:25")

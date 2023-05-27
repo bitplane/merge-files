@@ -1,14 +1,21 @@
 import pytest
-from merge_files.format.parameter.range import Range, Ranges
+from merge_files.format.parameter.range.range import Range
+from merge_files.format.parameter.range.ranges import Ranges
 from pydantic import BaseModel, ValidationError
 
 
 class ModelWithRange(BaseModel):
     range: Range
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 class ModelWithRanges(BaseModel):
     ranges: Ranges
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 def test_working_range_str():
@@ -60,15 +67,8 @@ def test_some_invalid_ranges():
         ModelWithRanges(range="0:10, boom!, 20:30")
 
 
-def test_json_serialize_range():
-    model = ModelWithRange(range="1:10")
+def test_validate_range_object():
+    model = ModelWithRange(range=range(10, 20))
 
-    assert model.json() == '{"range": "1:10"}'
-
-
-def test_json_serialize_ranges():
-    model = ModelWithRanges(ranges="0:10, 20:30")
-
-    model.ranges
-
-    assert model.json() == '{"range": "10,20:30"}'
+    assert model.range.start == 10
+    assert model.range.stop == 20

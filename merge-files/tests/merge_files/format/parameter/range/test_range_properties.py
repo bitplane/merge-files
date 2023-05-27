@@ -1,6 +1,6 @@
 import math
 
-from merge_files.format.parameter.range import Range
+from merge_files.format.parameter.range.range import Range
 
 
 def test_is_full():

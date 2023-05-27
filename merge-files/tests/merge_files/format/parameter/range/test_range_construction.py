@@ -1,7 +1,7 @@
 import math
 
 import pytest
-from merge_files.format.parameter.range import Range
+from merge_files.format.parameter.range.range import Range
 
 
 def test_range():
@@ -71,3 +71,22 @@ def test_inf():
 def test_start_after_stop():
     with pytest.raises(ValueError):
         Range("10:1")
+
+
+def test_two_start_positions():
+    with pytest.raises(ValueError):
+        Range(value=1, start=0, stop=2)
+
+
+def test_start_and_stop():
+    r = Range(10, 20)
+
+    assert r.start == 10
+    assert r.stop == 20
+
+
+def test_value_with_integer():
+    r = Range(2)
+
+    assert r.start == 0
+    assert r.stop == 2
