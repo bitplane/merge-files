@@ -37,8 +37,11 @@ def main():
     with open(args.source, "rb") as source_file:
         source = source_file.read()
 
-    with open(args.dest, "rb") as dest_file:
-        dest = dest_file.read()
+    if not os.path.exists(args.dest):
+        dest = b""
+    else:
+        with open(args.dest, "rb") as dest_file:
+            dest = dest_file.read()
 
     merger = get(args.source, args.dest)
     output_data = merger(source, dest, args.update)
