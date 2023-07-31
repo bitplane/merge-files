@@ -4,6 +4,7 @@
 Supports .env, text and binary files.
 """
 import argparse
+import os
 import sys
 from typing import List
 
