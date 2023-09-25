@@ -17,7 +17,7 @@ classifiers = [
 
 
 dependencies = [
-    "arange",
+    "arranges",
     "chardet",
     "pydantic",
     "simpleeval"
