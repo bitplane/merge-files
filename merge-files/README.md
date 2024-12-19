@@ -1,6 +1,8 @@
-# merge\_files
+# merge-files
 
-A generic, extensible file merge and conversion tool.
+A generic, extensible file mangling tool.
+
+
 
 ## Simple usage
 

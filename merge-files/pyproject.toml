@@ -1,13 +1,13 @@
 [project]
 name = "merge_files"
-description = "Merge two .env files files together"
-version = "0.1.7"
+description = "Convert and merge arbitrary files together"
+version = "0.2.0"
 authors = [
     { name = "Gareth Davidson", email = "gaz@bitplane.net" }
 ]
 
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: Public Domain", # OSI: nuck my suts; WTFPL
@@ -17,10 +17,10 @@ classifiers = [
 
 
 dependencies = [
-    "arranges",
-    "chardet",
-    "pydantic",
-    "simpleeval"
+    "arranges>=0.1",
+    "chardet==5.2.*",
+    "pydantic==2.3.*",
+    "simpleeval==0.9.*"
 ]
 
 [project.optional-dependencies]
